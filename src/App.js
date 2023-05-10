@@ -1,24 +1,54 @@
-import logo from './logo.svg';
-import './App.css';
-
+import Navbar from "./componetn/Navbar";
+import { Container, Card } from "react-bootstrap";
+import "./App.css";
+import axios from "axios";
+import { useState, useEffect, createContext } from "react";
+import Madol from "./componetn/Madol";
+import Cards from "./utils/Cards";
+export const AddContext = createContext();
 function App() {
+  const [search, setSearch] = useState("");
+  const [users, setUsers] = useState([]);
+  const [show, setShow] = useState(false);
+  const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
+  const [basket, setBasket] = useState(
+    JSON.parse(localStorage.getItem("basket")) || []
+  );
+  useEffect(() => {
+    axios.get(`https://jsonplaceholder.typicode.com/users`).then((e) => {
+      setUsers(e.data);
+    });
+  }, []);
+  const sortedContacts = users.sort((a, b) => a.name.localeCompare(b.name));
+  const filtered = users.filter((e) =>
+    e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  useEffect(() => {
+    localStorage.setItem("basket", JSON.stringify(basket));
+  }, [basket]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AddContext.Provider
+      value={{ search, setSearch, handleShow, basket, setBasket }}
+    >
+      <div className="App mt-5 ">
+        <Container>
+          <Card className="text-center">
+            <Card.Header className="bg-secondary">
+              <Navbar handleShow={handleShow} />
+            </Card.Header>
+            <Card.Body>
+              {filtered.map((e) => {
+                return <Cards props={e} />;
+              })}
+            </Card.Body>
+            <Card.Body className="text-muted"></Card.Body>
+          </Card>
+        </Container>
+        <Madol handleClose={handleClose} show={show} />
+      </div>
+    </AddContext.Provider>
   );
 }
 
